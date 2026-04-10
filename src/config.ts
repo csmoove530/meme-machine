@@ -17,7 +17,7 @@ export function todayDir(): string {
 // ── Budget ────────────────────────────────────────────────────────────────────
 export const BUDGET = {
   maxPerTransaction: 1.0,
-  dailyCap: 1.50,
+  dailyCap: 5.00, // higher cap for video mode ($0.30/clip x 9 = $2.70)
   exa: 0.05,
   claude: 0.05,
   falAi: 0.60,
@@ -42,8 +42,14 @@ export const SFW_POLICY = {
 // ── Pipeline config ───────────────────────────────────────────────────────────
 export const TOPIC_COUNT = 3;
 export const MEMES_PER_TOPIC = 3;
-export const IMAGE_TIER = 'ultra' as const; // ultra ($0.06) or pro ($0.04)
-export const ASPECT_RATIO = '1:1';
+
+// Media mode: 'video' (default, $0.30/clip, 6s, 1280x720) or 'image' ($0.06/image)
+export const MEDIA_MODE: 'video' | 'image' = 'video';
+export const IMAGE_TIER = 'ultra' as const; // ultra ($0.06) or pro ($0.04) — image mode only
+export const ASPECT_RATIO = MEDIA_MODE === 'video' ? '16:9' : '1:1';
+
+// Per-item cost for budget calculations
+export const COST_PER_ITEM = MEDIA_MODE === 'video' ? 0.30 : 0.06;
 
 // ── API endpoints ─────────────────────────────────────────────────────────────
 export const EXA_SEARCH_URL = 'https://stableenrich.dev/api/exa/search';

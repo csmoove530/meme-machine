@@ -14,7 +14,7 @@ import { ideate } from './ideate';
 import { generate } from './generate';
 import { overlay } from './overlay';
 import { publish } from './publish';
-import { BUDGET } from './config';
+import { BUDGET, COST_PER_ITEM, MEDIA_MODE } from './config';
 
 async function main() {
   const startTime = Date.now();
@@ -42,21 +42,23 @@ async function main() {
     }
 
     // ── Step 3: Generate ──────────────────────────────────────────
-    if (totalCost + (allConcepts.length * 0.06) > BUDGET.dailyCap) {
-      console.error(`[main] Budget exceeded. Estimated: $${(totalCost + allConcepts.length * 0.06).toFixed(2)}, cap: $${BUDGET.dailyCap}`);
+    const estimatedCost = totalCost + (allConcepts.length * COST_PER_ITEM);
+    if (estimatedCost > BUDGET.dailyCap) {
+      console.error(`[main] Budget exceeded. Estimated: $${estimatedCost.toFixed(2)}, cap: $${BUDGET.dailyCap}`);
       process.exit(1);
     }
 
-    const images = await generate(allConcepts);
-    totalCost += images.reduce((sum, img) => sum + img.cost, 0);
+    console.log(`[main] Media mode: ${MEDIA_MODE.toUpperCase()}`);
+    const media = await generate(allConcepts);
+    totalCost += media.reduce((sum, m) => sum + m.cost, 0);
 
-    if (images.length === 0) {
-      console.error('[main] No images generated. Aborting.');
+    if (media.length === 0) {
+      console.error('[main] No media generated. Aborting.');
       process.exit(1);
     }
 
     // ── Step 4: Overlay ───────────────────────────────────────────
-    const memes = await overlay(images);
+    const memes = await overlay(media);
 
     if (memes.length === 0) {
       console.error('[main] No memes created. Aborting.');

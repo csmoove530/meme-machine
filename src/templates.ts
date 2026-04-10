@@ -1,8 +1,9 @@
 import type { OverlaidMeme } from './overlay';
+import { MEDIA_MODE } from './config';
 
 interface TopicGroup {
   name: string;
-  memes: { meme: OverlaidMeme; imageUrl: string }[];
+  memes: { meme: OverlaidMeme; mediaUrl: string }[];
 }
 
 export function buildDashboardHtml(
@@ -14,17 +15,17 @@ export function buildDashboardHtml(
   let memeId = 0;
   const memeData: {
     id: number; url: string; title: string; caption: string; topic: string;
-    storySummary: string; memeRationale: string; sourceArticle: string; sourceUrl: string;
+    mediaType: string;
   }[] = [];
 
   const topicSections = topics.map(topic => {
     const firstMeme = topic.memes[0]?.meme;
-    const cards = topic.memes.map(({ meme, imageUrl }) => {
+    const cards = topic.memes.map(({ meme, mediaUrl }) => {
       memeId++;
       const caption = `${meme.concept.topText} / ${meme.concept.bottomText}`;
       memeData.push({
-        id: memeId, url: imageUrl, title: `Meme ${memeId}`, caption, topic: topic.name,
-        storySummary: '', memeRationale: '', sourceArticle: '', sourceUrl: '',
+        id: memeId, url: mediaUrl, title: `Meme ${memeId}`, caption, topic: topic.name,
+        mediaType: meme.mediaType || MEDIA_MODE,
       });
       return memeId;
     });
@@ -60,6 +61,7 @@ export function buildDashboardHtml(
   .card{background:#1a1a2e;border-radius:16px;overflow:hidden;border:1px solid #2a2a4a;transition:transform 0.2s,box-shadow 0.2s}
   .card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(233,69,96,0.15)}
   .card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .card video{width:100%;display:block;border-radius:0}
   .card-body{padding:16px}
   .card-body h3{font-size:0.9rem;color:#e94560;margin-bottom:4px}
   .card-body .caption{font-size:0.8rem;color:#888;margin-bottom:8px}
@@ -191,11 +193,22 @@ function buildUI() {
       if (!meme) return;
       var card = document.createElement('div');
       card.className = 'card';
-      var img = document.createElement('img');
-      img.src = meme.url;
-      img.alt = meme.title;
-      img.loading = 'lazy';
-      card.appendChild(img);
+      if (meme.mediaType === 'video') {
+        var vid = document.createElement('video');
+        vid.src = meme.url;
+        vid.controls = true;
+        vid.loop = true;
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.preload = 'metadata';
+        card.appendChild(vid);
+      } else {
+        var img = document.createElement('img');
+        img.src = meme.url;
+        img.alt = meme.title;
+        img.loading = 'lazy';
+        card.appendChild(img);
+      }
       var body = document.createElement('div');
       body.className = 'card-body';
       var h3 = document.createElement('h3');

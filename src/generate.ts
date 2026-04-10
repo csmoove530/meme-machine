@@ -1,12 +1,16 @@
 import { spawn, ChildProcess } from 'child_process';
-import { ASPECT_RATIO } from './config';
+import { ASPECT_RATIO, MEDIA_MODE, COST_PER_ITEM } from './config';
 import type { MemeConcept } from './ideate';
 
-export interface GeneratedImage {
+export interface GeneratedMedia {
   concept: MemeConcept;
-  imageUrl: string;
+  mediaUrl: string;
+  mediaType: 'video' | 'image';
   cost: number;
 }
+
+// Keep backward compat alias
+export type GeneratedImage = GeneratedMedia;
 
 /**
  * Persistent Visa CLI MCP connection.
@@ -94,65 +98,90 @@ class VisaCliMcp {
 }
 
 /**
- * Generate all images using Visa CLI's `batch` tool.
- * This triggers a SINGLE Touch ID approval for all images,
- * then generates them all in parallel on the server.
+ * Generate all media using Visa CLI.
+ *
+ * Image mode: uses `batch` tool for a single Touch ID approval, all in parallel.
+ * Video mode: generates one at a time (each needs its own approval, ~60-90s each).
  */
-export async function generate(concepts: MemeConcept[]): Promise<GeneratedImage[]> {
-  console.log(`[generate] Generating ${concepts.length} images via Visa CLI batch (single Touch ID approval)...`);
-  console.log(`[generate] You will be prompted for Touch ID ONCE to approve all ${concepts.length} images ($${(concepts.length * 0.06).toFixed(2)} total).`);
+export async function generate(concepts: MemeConcept[]): Promise<GeneratedMedia[]> {
+  const isVideo = MEDIA_MODE === 'video';
+  const toolName = isVideo ? 'generate_video_tempo_card' : 'generate_image_card';
+  const costPer = COST_PER_ITEM;
+  const totalEstimate = (concepts.length * costPer).toFixed(2);
+
+  console.log(`[generate] Mode: ${MEDIA_MODE.toUpperCase()}`);
+  console.log(`[generate] Generating ${concepts.length} ${MEDIA_MODE}s via Visa CLI ($${totalEstimate} total)...`);
 
   const mcp = new VisaCliMcp();
-  const results: GeneratedImage[] = [];
+  const results: GeneratedMedia[] = [];
 
   try {
     await mcp.initialize();
     console.log('[generate] Visa CLI MCP server connected');
 
-    // Build batch requests array
-    const requests = concepts.map(concept => ({
-      prompt: concept.scenePrompt,
-      aspect_ratio: ASPECT_RATIO,
-    }));
+    if (isVideo) {
+      // Video mode: one at a time (each needs Touch ID, ~60-90s generation)
+      for (let i = 0; i < concepts.length; i++) {
+        const concept = concepts[i];
+        console.log(`[generate] (${i + 1}/${concepts.length}) "${concept.topText} / ${concept.bottomText}" — approve Touch ID ($${costPer})...`);
 
-    console.log(`[generate] Sending batch of ${requests.length} images — approve Touch ID now...`);
+        try {
+          const result = await mcp.callTool(toolName, {
+            prompt: concept.scenePrompt,
+            aspect_ratio: ASPECT_RATIO,
+            user_context: `Meme Machine: generating video ${i + 1}/${concepts.length}`,
+          }, 300_000); // 5 minute timeout per video
 
-    // Single batch call = single Touch ID prompt
-    const batchResult = await mcp.callTool('batch', {
-      tool: 'generate_image_card',
-      requests,
-      user_context: `Meme Machine: batch generating ${concepts.length} memes`,
-    }, 600_000); // 10 minute timeout for batch
-
-    // Parse batch results
-    const content = batchResult.content || [];
-    for (const block of content) {
-      if (block.type !== 'text') continue;
-      try {
-        const parsed = JSON.parse(block.text);
-        const batchResults = parsed.results || [];
-
-        for (let i = 0; i < batchResults.length; i++) {
-          const r = batchResults[i];
-          if (!r.success) {
-            console.error(`[generate] Image ${i + 1} failed: ${r.error || 'unknown'}`);
-            continue;
+          const url = extractMediaUrl(result, 'mp4');
+          if (url) {
+            results.push({ concept, mediaUrl: url, mediaType: 'video', cost: costPer });
+            console.log(`[generate] ✓ Done — ${url.slice(-50)}`);
+          } else {
+            console.error(`[generate] ✗ No video URL in response`);
           }
-          const url = r.data?.imageUrl || r.urls?.[0] || '';
-          if (url && i < concepts.length) {
-            results.push({
-              concept: concepts[i],
-              imageUrl: url,
-              cost: 0.06,
-            });
-            console.log(`[generate] (${results.length}/${concepts.length}) OK — ${url.slice(-40)}`);
-          }
+        } catch (err: any) {
+          console.error(`[generate] ✗ Failed: ${err.message?.slice(0, 100)}`);
         }
-      } catch {
-        // Try to extract URLs from non-JSON text
-        const urls = block.text.match(/https:\/\/[^\s"]+\.(jpg|png|jpeg)/g) || [];
-        for (let i = 0; i < urls.length && i < concepts.length; i++) {
-          results.push({ concept: concepts[i], imageUrl: urls[i], cost: 0.06 });
+      }
+    } else {
+      // Image mode: batch for single Touch ID approval
+      const requests = concepts.map(concept => ({
+        prompt: concept.scenePrompt,
+        aspect_ratio: ASPECT_RATIO,
+      }));
+
+      console.log(`[generate] Sending batch of ${requests.length} images — approve Touch ID now...`);
+
+      const batchResult = await mcp.callTool('batch', {
+        tool: toolName,
+        requests,
+        user_context: `Meme Machine: batch generating ${concepts.length} memes`,
+      }, 600_000);
+
+      const content = batchResult.content || [];
+      for (const block of content) {
+        if (block.type !== 'text') continue;
+        try {
+          const parsed = JSON.parse(block.text);
+          const batchResults = parsed.results || [];
+
+          for (let i = 0; i < batchResults.length; i++) {
+            const r = batchResults[i];
+            if (!r.success) {
+              console.error(`[generate] Image ${i + 1} failed: ${r.error || 'unknown'}`);
+              continue;
+            }
+            const url = r.data?.imageUrl || r.urls?.[0] || '';
+            if (url && i < concepts.length) {
+              results.push({ concept: concepts[i], mediaUrl: url, mediaType: 'image', cost: costPer });
+              console.log(`[generate] (${results.length}/${concepts.length}) OK — ${url.slice(-40)}`);
+            }
+          }
+        } catch {
+          const urls = block.text.match(/https:\/\/[^\s"]+\.(jpg|png|jpeg)/g) || [];
+          for (let i = 0; i < urls.length && i < concepts.length; i++) {
+            results.push({ concept: concepts[i], mediaUrl: urls[i], mediaType: 'image', cost: costPer });
+          }
         }
       }
     }
@@ -160,7 +189,24 @@ export async function generate(concepts: MemeConcept[]): Promise<GeneratedImage[
     mcp.close();
   }
 
-  const totalCost = results.length * 0.06;
-  console.log(`[generate] Done: ${results.length}/${concepts.length} images, total $${totalCost.toFixed(2)}`);
+  const totalCost = results.reduce((sum, r) => sum + r.cost, 0);
+  console.log(`[generate] Done: ${results.length}/${concepts.length} ${MEDIA_MODE}s, total $${totalCost.toFixed(2)}`);
   return results;
+}
+
+/** Extract a media URL from MCP tool result */
+function extractMediaUrl(result: any, ext: string): string {
+  const content = result.content || [];
+  for (const block of content) {
+    if (block.type !== 'text') continue;
+    try {
+      const parsed = JSON.parse(block.text);
+      return parsed.videoUrl || parsed.imageUrl || parsed.urls?.[0] || '';
+    } catch {
+      const regex = new RegExp(`https://[^\\s"]+\\.${ext}`, 'g');
+      const urls = block.text.match(regex) || [];
+      if (urls.length) return urls[0];
+    }
+  }
+  return '';
 }

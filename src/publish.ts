@@ -47,22 +47,30 @@ export async function publish(
   const date = new Date().toISOString().slice(0, 10);
   console.log(`[publish] Uploading ${memes.length} memes + dashboard...`);
 
-  // Upload each meme image
-  const uploadedMemes: { meme: OverlaidMeme; imageUrl: string }[] = [];
+  // Upload each meme (image or video)
+  const uploadedMemes: { meme: OverlaidMeme; mediaUrl: string }[] = [];
 
   for (let i = 0; i < memes.length; i++) {
     const meme = memes[i];
+    const isVideo = meme.mediaType === 'video';
+    const contentType = isVideo ? 'video/mp4' : 'image/jpeg';
     console.log(`[publish] (${i + 1}/${memes.length}) Uploading ${meme.filename}...`);
     try {
       const result = uploadFile(
         `meme-machine-${date}-${meme.filename}`,
-        'image/jpeg',
+        contentType,
         meme.localPath,
       );
-      uploadedMemes.push({ meme, imageUrl: result.publicUrl });
+      uploadedMemes.push({ meme, mediaUrl: result.publicUrl });
       console.log(`[publish] OK — ${result.publicUrl.slice(-50)}`);
     } catch (err: any) {
-      console.error(`[publish] Failed to upload ${meme.filename}:`, err.message);
+      // For videos, fall back to the original fal.ai URL (already hosted)
+      if (isVideo && meme.mediaUrl) {
+        uploadedMemes.push({ meme, mediaUrl: meme.mediaUrl });
+        console.log(`[publish] Upload failed, using fal.ai URL directly`);
+      } else {
+        console.error(`[publish] Failed to upload ${meme.filename}:`, err.message);
+      }
     }
   }
 

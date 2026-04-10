@@ -100,6 +100,22 @@ The pipeline checks the environment variable first, then falls back to Keychain.
 
 ---
 
+## Content Policy: Safe For Work Only
+
+All generated content is **safe for work by default**. This is a core, non-negotiable feature.
+
+The Meme Lord skill (`skills/meme-lord/SKILL.md`) enforces these rules:
+- No nudity, sexual content, or suggestive imagery
+- No violence or gore (cartoon slapstick is OK)
+- No hate speech, slurs, or discriminatory content
+- No drug/alcohol abuse depictions
+- No profanity in captions (PG-13 max)
+- All scenes must be workplace-appropriate
+
+Every scene prompt is checked against a 4-point SFW checklist before generation. If you wouldn't show it on a conference room monitor, it doesn't get generated.
+
+---
+
 ## How the Pipeline Works
 
 Each run executes 5 steps in sequence. Every step is a separate module you can read and modify independently.
@@ -109,8 +125,11 @@ Each run executes 5 steps in sequence. Every step is a separate module you can r
 │  Meme Intel │ -> │ Ideate  │ -> │ Generate │ -> │ Overlay │ -> │ Publish │
 │  (Reddit)   │    │ (Claude)│    │ (fal.ai) │    │(Magick) │    │ (HTML)  │
 └─────────────┘    └─────────┘    └──────────┘    └─────────┘    └─────────┘
-   ~$0.30            ~$0.02         ~$0.54           free          ~$0.20
+   ~$0.30            ~$0.02       ~$2.70 (video)     free          ~$0.20
+                                  ~$0.54 (image)
 ```
+
+**Default mode: Video** ($0.30/clip, 6s, 1280x720 via Grok Imagine Video). Set `MEDIA_MODE = 'image'` in `src/config.ts` to switch to static images ($0.06/image via FLUX).
 
 ### Step 1: Meme Intel (`src/meme-intel.ts`)
 
@@ -224,19 +243,19 @@ All settings are in `src/config.ts`.
 
 | Setting | Default | Options |
 |---------|---------|---------|
+| `MEDIA_MODE` | `'video'` | `'video'` ($0.30/clip, 6s, 16:9) or `'image'` ($0.06/image, 1:1) |
 | `TOPIC_COUNT` | `3` | Number of meme format categories |
 | `MEMES_PER_TOPIC` | `3` | Memes generated per category |
-| `IMAGE_TIER` | `'ultra'` | `'ultra'` ($0.06/image) or `'pro'` ($0.04/image) |
-| `ASPECT_RATIO` | `'1:1'` | Any fal.ai supported ratio |
+| `IMAGE_TIER` | `'ultra'` | `'ultra'` ($0.06) or `'pro'` ($0.04) — image mode only |
 
 ### Budget
 
 | Setting | Default | What it controls |
 |---------|---------|-----------------|
 | `maxPerTransaction` | `$1.00` | Max spend on any single API call |
-| `dailyCap` | `$1.50` | Hard cap — pipeline aborts if estimated cost exceeds this |
+| `dailyCap` | `$5.00` | Hard cap — pipeline aborts if estimated cost exceeds this |
 
-The pipeline checks the budget **before** generating images:
+The pipeline checks the budget **before** generating media:
 
 ```
 [main] Budget exceeded. Estimated: $1.62, cap: $1.50
@@ -379,20 +398,30 @@ Scroll to the bottom. Paste your new ratings after the existing entries. Commit 
 
 ## Cost Breakdown
 
+### Video mode (default)
+
 | Service | What | Per-run cost | Payment method |
 |---------|------|-------------|----------------|
 | StableSocial | Reddit scanning (5 subreddits) | ~$0.30 | USDC via agentcash |
 | Anthropic API | Claude Sonnet (meme ideation) | ~$0.02 | API key |
-| fal.ai | Image generation (9 images, ultra) | ~$0.54 | Card via Visa CLI |
+| fal.ai | Video generation (9 clips, Grok Imagine) | ~$2.70 | Card via Visa CLI |
+| StableUpload | Host dashboard + videos | ~$0.20 | USDC via agentcash |
+| **Total** | | **~$3.22** | |
+
+### Image mode
+
+| Service | What | Per-run cost | Payment method |
+|---------|------|-------------|----------------|
+| StableSocial | Reddit scanning (5 subreddits) | ~$0.30 | USDC via agentcash |
+| Anthropic API | Claude Sonnet (meme ideation) | ~$0.02 | API key |
+| fal.ai | Image generation (9 images, FLUX ultra) | ~$0.54 | Card via Visa CLI |
 | StableUpload | Host dashboard + images | ~$0.20 | USDC via agentcash |
 | **Total** | | **~$1.06** | |
 
-Monthly cost at daily runs: **~$32/month**.
-
 To reduce costs:
-- Switch `IMAGE_TIER` to `'pro'` (saves $0.18/run)
-- Reduce `MEMES_PER_TOPIC` to `2` (saves $0.12/run)
-- Reduce `TOPIC_COUNT` to `2` (saves $0.24/run)
+- Switch to image mode: `MEDIA_MODE = 'image'` (saves ~$2.16/run)
+- Reduce `MEMES_PER_TOPIC` to `2` (saves 3 clips = $0.90 in video mode)
+- Reduce `TOPIC_COUNT` to `2` (saves 3 clips = $0.90 in video mode)
 
 ---
 
