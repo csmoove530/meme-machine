@@ -127,7 +127,30 @@ The ONLY meme that ever scored well (8/10) was "BEFORE DEPLOYING TO PROD / AFTER
 ### Round 5 (Meme Machine static images, 2026-04-09) — ALL FLOPPED
 - Remote Work Expectation/Reality: 2/10
 - ALL others (LinkedIn/Desk, Diet, Demo Day, Meeting/Email, WiFi, Schedule, Ordered/Got, Morning Routine): 1/10
-- **Key learning:** Static image memes with generic workplace/life humor are NOT working. User strongly prefers VIDEO memes. The Before/After and This Is Fine formats produce boring, predictable images that don't land. Video memes with dramatic transformations score 3-4x higher than static equivalents.
+
+### Round 6 (Meme Machine video memes, 2026-04-10) — ALMOST ALL FLOPPED
+- ON SCHEDULE / SERVER ROOM ON FIRE: 5/10 (only decent one — had dramatic visual contrast)
+- ALL others: 1/10 (No Blockers, Code Review, Deploy, Inbox Zero, Bank Balance, First Day, Gym, Cooking Show)
+- **Key learning:** Generic workplace/life humor fails even in video format. 6 rounds of testing confirm: UNIVERSAL RELATABLE EXPERIENCES ARE NOT ENOUGH. The only memes that ever scored 6+ were either (a) tied to a specific cultural moment/zeitgeist (MAGA Hat 8/10), (b) had extreme dramatic visual contrast (Server Fire 5/10, Git Push Chaos 6/10), or (c) both. TOPICAL + SPECIFIC CHARACTER + DRAMATIC VISUAL = the formula. Generic "before/after work life" = guaranteed 1/10.
+
+### Round 7 (Meme Machine zeitgeist video memes, 2026-04-10) — BEST ROUND YET
+Topics: Trump tariffs, AI taking jobs, Kanye UK ban
+- TYPING AT DESK / AI ROBOT TAKES OVER: 5/10 (AI replacing human in real-time — visceral)
+- GEN Z GRADUATE / POSITION AUTOMATED: 5/10 (graduation-to-automation pipeline — timely + emotional)
+- MAGA HAT SHOPPER / TARIFF STICKER SHOCK: 4/10 (specific recognizable archetype + current event)
+- JOB INTERVIEW / ROBOT HIRING MANAGER: 4/10 (absurd reveal — robot face turn)
+- LIBERATION DAY / TACO PAUSE BUTTON: 3/10 (concept good but hard to execute in 6s)
+- PENGUIN ISLAND / TARIFF 10%: 3/10 (funny concept, hard to render well)
+- RAPPER AT AIRPORT / BANNED FROM UK: 1/10 (too specific, didn't land visually)
+- FESTIVAL HEADLINER / GOVERNMENT BANNED: not rated
+- MAGA HAT $50 / MADE IN CHINA $77: not rated
+- **Key learnings:**
+  - TOPICAL MEMES SCORE 3-5x HIGHER than generic ones (avg 3.6/10 vs avg 1.1/10 for generic)
+  - AI TAKING JOBS was the best-performing topic (avg 4.7/10) — combines zeitgeist + universal dread
+  - TARIFF CHAOS was decent (avg 3.3/10) — recognizable archetypes (MAGA hat) help
+  - CULTURAL CHAOS (Kanye) flopped (1/10) — too niche, requires too much context
+  - Best formula so far: TRENDING TOPIC EVERYONE KNOWS + SPECIFIC CHARACTER + QUIET EMOTIONAL DEFEAT
+  - Re-generating a video with a "better" prompt often makes it worse — the AI model's first interpretation is usually the most natural
 
 ## Cost Summary
 | Step | Service | Cost |
