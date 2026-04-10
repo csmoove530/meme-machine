@@ -280,9 +280,34 @@ cat ~/.meme-machine/latest.txt
 
 ---
 
-## Rating Feedback Loop
+## The Meme Lord Skill
 
-The dashboard's "Save Ratings" button copies a markdown summary like:
+The repo ships with a bundled **Meme Lord** skill at `skills/meme-lord/SKILL.md` — a comprehensive guide to viral meme creation that the pipeline uses as its knowledge base. It includes:
+
+- **Meme Hall of Fame** — The 10 most successful memes of all time (Distracted Boyfriend, Drake, Woman Yelling at Cat, etc.) analyzed for exactly *why* they worked, with replicable recipes
+- **Universal Success Patterns** — Ironic contrast, emotional mismatch, confident wrongness, escalation, and more
+- **Golden Rules of Virality** — 7 principles distilled from decades of meme culture
+- **Your Rating History** — Every meme you've ever rated, so Claude learns what you find funny
+
+The ideation step (`src/ideate.ts`) feeds the entire Meme Lord skill to Claude as context. This means Claude doesn't just generate random memes — it's trained on what makes memes go viral and what *you* specifically rate highly.
+
+### How the Feedback Loop Works
+
+```
+  You rate memes ──> Ratings saved ──> Claude reads ratings ──> Better memes next time
+       ▲                                                              │
+       └──────────────────────────────────────────────────────────────┘
+```
+
+1. **Rate memes** in the dashboard (1-10 for each meme and each format)
+2. Ratings are **auto-saved** to your browser's localStorage as you click
+3. Click **"Save Ratings to Meme Lord"** to copy a structured markdown summary
+4. **Paste into `skills/meme-lord/SKILL.md`** under the Rating History section
+5. On the next pipeline run, Claude reads your full rating history and adjusts its output
+
+The exported ratings include a "Learnings" section that explicitly calls out what worked (7+/10) and what flopped (3-/10), so Claude can pattern-match on your preferences.
+
+**Example export:**
 
 ```markdown
 ## Meme Machine Ratings — 2026-04-09
@@ -295,10 +320,25 @@ The dashboard's "Save Ratings" button copies a markdown summary like:
 ### Individual Meme Ratings
 1. **BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD** — 9/10 (Before/After)
 2. **EXPECTATION / REALITY** — 7/10 (Expectation vs Reality)
-...
+3. **NOBODY ASKED / ME AT 3AM** — 3/10 (Nobody/Me)
+
+### Learnings
+**What worked:** "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" (9/10, Before/After), "EXPECTATION / REALITY" (7/10, Expectation vs Reality)
+**What flopped:** "NOBODY ASKED / ME AT 3AM" (3/10, Nobody/Me)
 ```
 
-Save this to `~/.meme-machine/rating-history.md` and the pipeline will feed it to Claude on the next run, learning your preferences over time.
+### Pre-trained Preferences
+
+The skill ships pre-loaded with learnings from real testing rounds:
+
+| Meme | Score | Key Learning |
+|------|-------|-------------|
+| "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" | 8/10 | Universal dev experience + ironic contrast = winner |
+| "MAGA Hat Gas Pump" | 8/10 | Culturally specific + recognizable archetype + quiet defeat |
+| "Git Push Chaos" (video) | 6/10 | Specific character + dramatic consequence |
+| "Meal Prep vs Reality" (video) | 6/10 | Strong visual contrast + character archetypes |
+| "NASA Outlook in Space" | 5/10 | Universal tech frustration + absurd context |
+| News-based memes | 1/10 | Too niche, require too much context |
 
 ---
 
@@ -401,6 +441,11 @@ src/
   overlay.ts         Step 4 — ImageMagick text overlay (Impact font)
   publish.ts         Step 5 — Upload to StableUpload, build dashboard
   templates.ts       Dashboard HTML template with rating UI + leaderboard
+
+skills/
+  meme-lord/
+    SKILL.md         Meme Lord knowledge base — hall of fame, success patterns,
+                     golden rules of virality, and your rating history
 ```
 
 ---

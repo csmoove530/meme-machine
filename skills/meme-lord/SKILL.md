@@ -1,0 +1,238 @@
+---
+name: meme-lord
+description: Generate viral memes by researching trending topics, generating image variations, and rating them. Covers the full meme creation pipeline from trend research to image generation to A/B testing. Includes the Meme Hall of Fame — 10 all-time greatest memes analyzed for replicable success patterns.
+---
+
+# Meme Lord - Viral Meme Creation Pipeline
+
+Use this skill when the user wants to create memes, generate funny images, find trending meme topics, or A/B test meme variations.
+
+## Pipeline
+
+### Step 1: Research Trending Topics
+Use Exa search via StableEnrich (`stableenrich.dev/api/exa/search`) with these parameters:
+- `category: "news"` (the `"tweet"` category is no longer supported)
+- `startPublishedDate` set to last 24-48 hours
+- `type: "neural"`
+- Query for "funny viral meme wholesome lighthearted" + timeframe
+- Run a second search for general trending news to cross-reference
+
+Filter results for: lighthearted, non-controversial, SFW, universally relatable topics.
+
+### Step 2: Design Meme Concepts
+Structure meme prompts with:
+- **Visual scene** description (character, setting, action)
+- **Top text / bottom text** in bold impact font style
+- **Ironic contrast** works best (expectation vs reality, before/after)
+- **Square format** (`aspect_ratio: "1:1"`) is standard for memes
+
+### Step 3: Generate Variations
+Use Visa CLI `batch` tool with `generate_image_card` for quality, or `generate_image_fast_card` for speed:
+- Generate 5+ variations with different captions/angles
+- Use `requests` array for varied prompts (not `count` with identical params)
+- Budget: ~$0.30 for 5 Ultra images, ~$0.20 for 5 Pro images
+
+### Step 4: Rate & Compare
+Build an HTML rating page with:
+- All variations displayed in a grid
+- 1-10 rating buttons per image
+- Summary bar chart showing results
+- "Save to Skill" button to export preferences
+- Upload to StableUpload (`stableupload.dev/api/upload`, $0.02 for 10mb tier) for sharing
+
+## User Preferences (from testing)
+
+### Critical Learning: FORMAT-FIRST, Not News-First
+
+After 4 rounds of automated meme generation (all scoring 1/10 except one 5/10), the fundamental problem was identified: **searching for funny news and trying to make memes from them does not work.** News stories are too niche, require too much context, and don't map to meme formats naturally.
+
+The ONLY meme that ever scored well (8/10) was "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" — which was NOT based on any news story. It was a universal experience on a proven format.
+
+**How to apply:**
+- Pipeline must be FORMAT-FIRST: find what meme templates are hot on Reddit RIGHT NOW, then generate original captions for those formats using universal relatable experiences
+- News stories are optional flavor at best, never the foundation
+- Good memes come from RELATABLE UNIVERSAL EXPERIENCES (deploying to prod, email being broken, meetings that could've been emails) not from news
+- The format/template IS the joke structure — the caption just fills in the blanks with something everyone recognizes
+
+### What works:
+- Before/after ironic contrast scores highest (8/10)
+- Ironic contrast format ("X in the pitch deck" vs "X in production")
+- AI/tech humor that's self-aware
+- Relatable workplace situations
+- Animals doing funny things
+- Concrete shared experiences beat abstract metaphors
+- "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" style
+- Keep captions short, punchy, grounded in real scenarios
+- "Deploying to prod" (8/10) >> "Juggling 10 things" (5/10) >> abstract metaphors (1-2/10)
+
+### Politically charged memes can score higher IF authentic:
+- "MAGA Hat Gas Pump" (8/10) — tapped into real cultural moment
+- Formula: Specific recognizable character archetype + quiet emotional defeat + tied to current cultural moment
+
+### Prompt tips:
+- Always specify "bold white impact font meme text" for text overlays
+- Include "top text:" and "bottom text:" explicitly
+- Add style descriptors: "cartoon style", "comic illustration", "dramatic oil painting" for variety
+- Keep captions short and punchy
+
+### Pipeline:
+- Two-step generation: FLUX for clean image (no text in prompt) + ImageMagick Impact font overlay
+- Batch tool for single Touch ID approval of all images
+
+### Video Memes:
+- 6 seconds is too short for before/after or punchline reveals
+- Focus on SINGLE CHARACTER + DRAMATIC TRANSFORMATION in one continuous shot
+- Describe the character in extreme detail (clothing, hair, physical features)
+- Git Push Chaos (6/10) and Meal Prep vs Reality (6/10) worked because: specific character + dramatic consequence + strong visual contrast
+
+## Rating History
+
+### Round 1 (manual, Robot Olaf variations)
+- Deploy to Prod: 8/10 (winner)
+- Juggling: 5/10
+- TED Talk: 2/10, Job Interview: 2/10, Red Carpet: 1/10
+
+### Round 2 (Meme Machine automated, 2026-04-04)
+- NASA Outlook in Space: 5/10
+- All others: 1/10
+
+### Round 3 (video memes v2 with character specificity)
+- Git Push Chaos: 6/10
+- Meal Prep vs Reality: 6/10
+- Monday vs Friday: 3/10
+- Others: 1-2/10
+
+### Round 4 (zeitgeist/political format)
+- MAGA Hat Gas Pump: 8/10 (new record)
+
+## Cost Summary
+| Step | Service | Cost |
+|------|---------|------|
+| Research | Exa Search | ~$0.01/query |
+| Generate (Ultra) | fal.ai via Visa CLI | $0.06/image |
+| Generate (Pro) | fal.ai via Visa CLI | $0.04/image |
+| Host rating page | StableUpload | $0.02 |
+| **Typical session** | **5 variations + research + hosting** | **~$0.35** |
+
+---
+
+## Meme Hall of Fame — Top 10 Most Successful Memes & Why They Worked
+
+Study these. Every great meme taps into one or more of the patterns below.
+
+### 1. Distracted Boyfriend (2017)
+**Format:** Stock photo of a man turning to look at another woman while his girlfriend looks on in disgust. Labels are placed on all three people.
+**Why it worked:**
+- **Three-way relational tension** — the format naturally encodes "thing I should want" vs "thing I actually want" vs "my reaction to myself"
+- **Infinite remixability** — any love-triangle of concepts works (old tech/new tech/users, responsibilities/distractions/consequences)
+- **Instantly readable** — the emotion is in the body language before you even read the labels
+- **Low barrier to create** — just add three text labels to a stock photo
+**Recipe:** Find any situation where someone is irrationally drawn to a worse option over a better one. Label all three figures.
+
+### 2. Drake Hotline Bling (2015)
+**Format:** Two-panel: Drake rejecting something (top) and approving something (bottom).
+**Why it worked:**
+- **Binary comparison** — the simplest possible meme structure: bad thing vs good thing
+- **Drake's exaggerated expressions** — disgust vs delight are universally readable across cultures
+- **Template simplicity** — two boxes, two labels, done. Even non-designers can make one in 30 seconds
+- **Endlessly adaptable** — works for preferences, opinions, upgrades, downgrades, anything with two options
+**Recipe:** Take any opinion where the "correct" choice is obvious to your audience but society picks the wrong one. Or flip it for irony.
+
+### 3. Woman Yelling at Cat (2019)
+**Format:** Split image — left side is Taylor Armstrong crying/pointing from Real Housewives, right side is Smudge the cat sitting at a dinner table looking confused.
+**Why it worked:**
+- **Emotional mismatch** — extreme human emotion paired with total cat indifference creates instant comedy
+- **Accusation/innocence dynamic** — maps perfectly to "someone overreacting at something that doesn't care"
+- **Two-image juxtaposition** — the humor is in the contrast, not in either image alone
+- **Cross-species absurdity** — a cat at a dinner table is inherently funny; it didn't need to try
+**Recipe:** Pair an overreaction with something that's blissfully unaware or unbothered. The bigger the gap in emotional intensity, the funnier.
+
+### 4. This Is Fine (2013, peaked ~2016-2020)
+**Format:** Dog sitting in a burning room, calmly saying "This is fine."
+**Why it worked:**
+- **Denial humor** — everyone has experienced pretending things are okay when they're clearly not
+- **Existential relatability** — became the default reaction image for every crisis (political, personal, professional)
+- **Escalation potential** — you can add more fire, swap the room for worse scenarios
+- **Emotional shorthand** — saying "this is fine" in any chat instantly communicates the feeling without explanation
+**Recipe:** Show something or someone maintaining composure in an obviously deteriorating situation. The calm must be delusional.
+
+### 5. Expanding Brain (2017)
+**Format:** Multi-panel showing increasingly "enlightened" brain images alongside increasingly absurd ideas.
+**Why it worked:**
+- **Escalation structure** — each panel raises the stakes, creating a natural comedic build
+- **Ironic intellectualism** — presents dumb ideas as galaxy-brain insights, mocking pretentiousness
+- **Variable length** — works with 4 panels or 12, giving creators flexibility
+- **Subverts "smart = good"** — the "smartest" option is always the most ridiculous, which feels transgressive
+**Recipe:** Start with the normal/boring/correct take, then escalate through increasingly unhinged alternatives, presenting each as more enlightened than the last.
+
+### 6. SpongeBob Mocking (2017)
+**Format:** Image of SpongeBob in a chicken-like pose, paired with text in aLtErNaTiNg CaPs to indicate mocking repetition.
+**Why it worked:**
+- **New typography = new tone of voice** — alternating caps became a universal written indicator of sarcasm
+- **Weaponized repetition** — quoting someone's own words back in mocking caps is devastating
+- **No image needed eventually** — the text style alone carries the meme; it transcended its image
+- **Universal application** — works for mocking anything: rules, excuses, corporate speak, cliches
+**Recipe:** Take any statement that sounds dumb, entitled, or cliche, and repeat it in alternating caps. The original speaker's earnestness is what makes it funny.
+
+### 7. Success Kid / I Hate Sandcastles (2007, still going)
+**Format:** Toddler on a beach with a fist-pump expression and a determined face.
+**Why it worked:**
+- **Pure positive emotion** — one of the rare memes that's about triumph, not irony
+- **Universal small victories** — "found a parking spot right away," "code compiled on the first try"
+- **Wholesome longevity** — never became toxic or political, so it survived platform shifts
+- **Simple top/bottom text** — classic Impact font meme structure, zero learning curve
+**Recipe:** Celebrate a small, relatable victory that everyone has experienced but nobody talks about. The joy should be disproportionate to the achievement.
+
+### 8. Bernie Sanders Mittens (January 2021)
+**Format:** Photo of Bernie Sanders sitting alone at Biden's inauguration in a puffy jacket and hand-knit mittens, looking cold and grumpy. Photoshopped into every possible setting.
+**Why it worked:**
+- **Perfect character** — Bernie's "I'd rather be anywhere else" energy was universally readable
+- **Photoshop bait** — his seated pose with empty space around him was trivially easy to cut out and paste anywhere
+- **Timing** — dropped during peak pandemic boredom when everyone was online and creative
+- **Bipartisan humor** — both sides found it funny because it wasn't about politics, it was about vibes
+**Recipe:** When a public figure accidentally strikes a pose that radiates a universal mood, isolate them and place them in absurd contexts. The pose must be doing all the comedic work.
+
+### 9. Is This a Pigeon? (1991 anime, meme peaked 2018)
+**Format:** Anime character pointing at a butterfly and asking "Is this a pigeon?" Labels on the character, butterfly, and question.
+**Why it worked:**
+- **Confident wrongness** — the humor is in someone being completely, sincerely wrong about something obvious
+- **Three-label structure** — like Distracted Boyfriend, the format is label-on-subject and it just works
+- **Applicable everywhere** — any time someone misidentifies or miscategorizes something, this format fits
+- **Gentle mockery** — it's not cruel; the character is earnestly trying, which makes the humor warm
+**Recipe:** Find situations where someone (a company, a person, a system) confidently misidentifies something obvious. Label the actor, the thing, and the wrong conclusion.
+
+### 10. Doge / Much Wow (2013, evolved into Dogecoin culture)
+**Format:** Photo of a Shiba Inu with colorful Comic Sans text in broken English ("much wow," "very scare," "so amaze").
+**Why it worked:**
+- **Language innovation** — "doge-speak" became its own dialect, instantly recognizable
+- **Wholesome absurdity** — a cute dog + broken English = zero hostility, pure joy
+- **Cultural longevity** — evolved from meme to cryptocurrency to Elon Musk tweets to mainstream culture
+- **Low-effort aesthetic** — Comic Sans and random text placement looked intentionally bad, which was the point
+**Recipe:** Pair an expressive animal face with enthusiastic but grammatically broken commentary. The sincerity of the emotion + the brokenness of the language = comedy.
+
+---
+
+## Universal Meme Success Patterns
+
+Distilled from the hall of fame above — use these as a checklist when designing memes:
+
+| Pattern | Description | Examples |
+|---------|-------------|----------|
+| **Ironic Contrast** | Juxtapose what should be with what is | Distracted Boyfriend, Drake, Expanding Brain |
+| **Emotional Mismatch** | Pair extreme emotion with inappropriate calm (or vice versa) | Woman Yelling at Cat, This Is Fine |
+| **Confident Wrongness** | Someone sincerely believes something obviously incorrect | Is This a Pigeon?, Expanding Brain |
+| **Escalation** | Each step gets more absurd, building comedic tension | Expanding Brain, deep-fried memes |
+| **Relatable Micro-Moment** | Tiny universal experience everyone recognizes but never articulates | Success Kid, This Is Fine |
+| **Easy Remixability** | The format is dead simple to customize (labels, text swap, photoshop cutout) | ALL top memes share this |
+| **Transcends the Image** | The concept works even without the original image (alternating caps, doge-speak) | SpongeBob Mocking, Doge |
+| **Wholesome Core** | Non-toxic, non-partisan, universally shareable | Success Kid, Doge, Bernie Mittens |
+
+### The Golden Rules of Meme Virality
+
+1. **Simplicity wins.** If you can't understand the meme in under 2 seconds, it won't spread.
+2. **Emotion over information.** Memes that make you *feel* something spread faster than memes that make you *think* something.
+3. **The audience must see themselves.** The most viral memes are mirrors — people share them because "this is literally me."
+4. **Remixability is survival.** A meme that can only be used one way dies. A meme that's a template lives forever.
+5. **Imperfection is authentic.** Overly polished memes feel like ads. Slightly rough, slightly broken aesthetics signal "one of us."
+6. **Timing multiplies everything.** A mediocre meme at the perfect moment beats a perfect meme a week late.
+7. **Irony is the native language of the internet.** Sincerity works occasionally (Success Kid), but irony is the safer bet.

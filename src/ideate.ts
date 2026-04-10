@@ -38,15 +38,15 @@ export interface IdeateResult {
 }
 
 function loadMemeLordPatterns(): string {
-  // Check for meme-lord skill patterns in Claude Code skills directory
+  // Priority 1: Bundled meme-lord skill in the repo (always available)
+  const bundledPath = join(__dirname, '..', 'skills', 'meme-lord', 'SKILL.md');
+  if (existsSync(bundledPath)) {
+    return readFileSync(bundledPath, 'utf-8');
+  }
+  // Priority 2: Claude Code skills directory (if installed there)
   const skillPath = join(homedir(), '.claude/skills/meme-lord/SKILL.md');
   if (existsSync(skillPath)) {
     return readFileSync(skillPath, 'utf-8');
-  }
-  // Also check for a local patterns file in the project
-  const localPath = join(process.cwd(), 'meme-patterns.md');
-  if (existsSync(localPath)) {
-    return readFileSync(localPath, 'utf-8');
   }
   return '';
 }

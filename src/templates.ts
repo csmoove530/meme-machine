@@ -235,6 +235,53 @@ function buildUI() {
   });
 }
 
+function persistRatings() {
+  try {
+    localStorage.setItem('meme-machine-ratings-${date}', JSON.stringify({
+      date: '${date}',
+      ratings: ratings,
+      formatRatings: formatRatings,
+      memes: memes.map(function(m) {
+        return { id: m.id, caption: m.caption, topic: m.topic, score: ratings[m.id] || null };
+      }),
+      formats: topicSections.map(function(t, idx) {
+        return { name: t.name, score: formatRatings[idx] || null };
+      })
+    }));
+  } catch(e) { /* localStorage unavailable */ }
+}
+
+function loadPersistedRatings() {
+  try {
+    var saved = localStorage.getItem('meme-machine-ratings-${date}');
+    if (!saved) return;
+    var data = JSON.parse(saved);
+    if (data.ratings) {
+      Object.keys(data.ratings).forEach(function(mid) {
+        ratings[parseInt(mid)] = data.ratings[mid];
+        var score = data.ratings[mid];
+        document.querySelectorAll('#buttons-' + mid + ' button').forEach(function(b) {
+          parseInt(b.dataset.score) <= score ? b.classList.add('selected') : b.classList.remove('selected');
+        });
+        var disp = document.getElementById('score-' + mid);
+        if (disp) { disp.textContent = score + '/10'; disp.classList.add('visible'); }
+      });
+    }
+    if (data.formatRatings) {
+      Object.keys(data.formatRatings).forEach(function(fid) {
+        formatRatings[parseInt(fid)] = data.formatRatings[fid];
+        var score = data.formatRatings[fid];
+        document.querySelectorAll('#format-buttons-' + fid + ' button').forEach(function(b) {
+          parseInt(b.dataset.score) <= score ? b.classList.add('selected') : b.classList.remove('selected');
+        });
+        var disp = document.getElementById('format-score-' + fid);
+        if (disp) { disp.textContent = score + '/10'; disp.classList.add('visible'); }
+      });
+    }
+    updateSummary();
+  } catch(e) { /* localStorage unavailable */ }
+}
+
 function handleFormatRating(e) {
   var btn = e.currentTarget;
   var fid = parseInt(btn.dataset.format);
@@ -246,6 +293,7 @@ function handleFormatRating(e) {
   var disp = document.getElementById('format-score-' + fid);
   disp.textContent = score + '/10';
   disp.classList.add('visible');
+  persistRatings();
   updateSummary();
 }
 
@@ -260,6 +308,7 @@ function handleRating(e) {
   var disp = document.getElementById('score-' + mid);
   disp.textContent = score + '/10';
   disp.classList.add('visible');
+  persistRatings();
   updateSummary();
 }
 
@@ -322,9 +371,23 @@ document.getElementById('save-btn').addEventListener('click', function() {
   ranked.forEach(function(m, i) {
     lines.push((i+1) + '. **' + m.caption + '** — ' + ratings[m.id] + '/10 (' + m.topic + ')');
   });
-  navigator.clipboard.writeText(lines.join('\\n')).then(function() {
-    showToast('Ratings copied! Paste into meme-lord skill.');
+  lines.push('');
+  // Key learnings for meme-lord skill
+  lines.push('### Learnings');
+  var best = ranked.filter(function(m) { return ratings[m.id] >= 7; });
+  var worst = ranked.filter(function(m) { return ratings[m.id] <= 3; });
+  if (best.length) {
+    lines.push('**What worked:** ' + best.map(function(m) { return '"' + m.caption + '" (' + ratings[m.id] + '/10, ' + m.topic + ')'; }).join(', '));
+  }
+  if (worst.length) {
+    lines.push('**What flopped:** ' + worst.map(function(m) { return '"' + m.caption + '" (' + ratings[m.id] + '/10, ' + m.topic + ')'; }).join(', '));
+  }
+  var ratingText = lines.join('\\n');
+  navigator.clipboard.writeText(ratingText).then(function() {
+    showToast('Ratings copied! Paste into skills/meme-lord/SKILL.md to train the Meme Lord.');
   });
+  // Also persist to localStorage for the feedback loop
+  persistRatings();
 });
 
 document.getElementById('share-btn').addEventListener('click', function() {
@@ -334,6 +397,7 @@ document.getElementById('share-btn').addEventListener('click', function() {
 });
 
 buildUI();
+loadPersistedRatings();
 </script>
 </body>
 </html>`;
