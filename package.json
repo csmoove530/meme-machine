@@ -1,0 +1,36 @@
+{
+  "name": "meme-machine",
+  "version": "1.0.0",
+  "description": "Daily automated meme generation pipeline — researches trending topics, generates memes with AI, overlays captions, and publishes a shareable rating dashboard",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "meme-machine": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npx tsx src/index.ts",
+    "dev": "npx tsx --watch src/index.ts"
+  },
+  "keywords": [
+    "meme",
+    "ai",
+    "image-generation",
+    "claude",
+    "visa-cli",
+    "agentcash",
+    "fal-ai",
+    "imagemagick",
+    "automation"
+  ],
+  "author": "Cuy Sheffield",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
+  }
+}
