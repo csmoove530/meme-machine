@@ -282,32 +282,64 @@ cat ~/.meme-machine/latest.txt
 
 ## The Meme Lord Skill
 
-The repo ships with a bundled **Meme Lord** skill at `skills/meme-lord/SKILL.md` — a comprehensive guide to viral meme creation that the pipeline uses as its knowledge base. It includes:
+The repo includes a **Meme Lord** skill at `skills/meme-lord/SKILL.md` — the pipeline's knowledge base for viral meme creation. Claude reads this entire file before generating memes, so it knows:
 
-- **Meme Hall of Fame** — The 10 most successful memes of all time (Distracted Boyfriend, Drake, Woman Yelling at Cat, etc.) analyzed for exactly *why* they worked, with replicable recipes
-- **Universal Success Patterns** — Ironic contrast, emotional mismatch, confident wrongness, escalation, and more
-- **Golden Rules of Virality** — 7 principles distilled from decades of meme culture
-- **Your Rating History** — Every meme you've ever rated, so Claude learns what you find funny
+- What meme formats historically go viral (and *why*)
+- What you personally rate highly
+- What to avoid
 
-The ideation step (`src/ideate.ts`) feeds the entire Meme Lord skill to Claude as context. This means Claude doesn't just generate random memes — it's trained on what makes memes go viral and what *you* specifically rate highly.
+### What's in the skill
 
-### How the Feedback Loop Works
+**Meme Hall of Fame** — 10 all-time greatest memes, each with:
+- The exact format structure
+- Why it worked (3-4 specific reasons)
+- A replicable **Recipe** you can apply to new topics
 
-```
-  You rate memes ──> Ratings saved ──> Claude reads ratings ──> Better memes next time
-       ▲                                                              │
-       └──────────────────────────────────────────────────────────────┘
-```
+> Example: **Distracted Boyfriend** works because of three-way relational tension — the format naturally encodes "thing I should want" vs "thing I actually want" vs "my reaction to myself." Recipe: Find any situation where someone is irrationally drawn to a worse option over a better one.
 
-1. **Rate memes** in the dashboard (1-10 for each meme and each format)
-2. Ratings are **auto-saved** to your browser's localStorage as you click
-3. Click **"Save Ratings to Meme Lord"** to copy a structured markdown summary
-4. **Paste into `skills/meme-lord/SKILL.md`** under the Rating History section
-5. On the next pipeline run, Claude reads your full rating history and adjusts its output
+**Universal Success Patterns** — 8 patterns distilled from the hall of fame:
 
-The exported ratings include a "Learnings" section that explicitly calls out what worked (7+/10) and what flopped (3-/10), so Claude can pattern-match on your preferences.
+| Pattern | What it means |
+|---------|--------------|
+| Ironic Contrast | Juxtapose what should be with what is |
+| Emotional Mismatch | Extreme emotion paired with inappropriate calm |
+| Confident Wrongness | Someone sincerely believes something obviously wrong |
+| Escalation | Each step more absurd, building comedic tension |
+| Relatable Micro-Moment | Universal experience everyone recognizes but never says |
+| Easy Remixability | Dead simple to customize |
+| Transcends the Image | Works even without the original picture |
+| Wholesome Core | Non-toxic, universally shareable |
 
-**Example export:**
+**7 Golden Rules** — including "simplicity wins," "emotion over information," and "the audience must see themselves."
+
+### Pre-trained preferences
+
+The skill ships pre-loaded with learnings from 4 rounds of real A/B testing:
+
+| Meme | Score | What Claude learns from this |
+|------|-------|------------------------------|
+| "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" | 8/10 | Universal experience + ironic contrast = winner |
+| "MAGA Hat Gas Pump" | 8/10 | Recognizable archetype + quiet emotional defeat + zeitgeist |
+| "Git Push Chaos" (video) | 6/10 | Specific character + dramatic consequence works |
+| "Meal Prep vs Reality" (video) | 6/10 | Strong visual contrast + character archetypes |
+| "NASA Outlook in Space" | 5/10 | Universal tech frustration + absurd context is decent |
+| News-based memes (all rounds) | 1/10 | Too niche, require too much context — never do this |
+
+---
+
+## Rating Feedback Loop
+
+The pipeline gets better over time. Every time you rate memes, those ratings feed back into Claude's next run.
+
+### How it works
+
+**Step 1:** Rate memes in the dashboard. Click any number 1-10.
+
+Your ratings are **auto-saved instantly** — close the tab, come back later, your ratings are still there (stored in your browser's localStorage).
+
+**Step 2:** Click **"Save Ratings to Meme Lord"** when you're done.
+
+This copies a structured markdown summary to your clipboard:
 
 ```markdown
 ## Meme Machine Ratings — 2026-04-09
@@ -323,22 +355,25 @@ The exported ratings include a "Learnings" section that explicitly calls out wha
 3. **NOBODY ASKED / ME AT 3AM** — 3/10 (Nobody/Me)
 
 ### Learnings
-**What worked:** "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" (9/10, Before/After), "EXPECTATION / REALITY" (7/10, Expectation vs Reality)
+**What worked:** "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" (9/10, Before/After)
 **What flopped:** "NOBODY ASKED / ME AT 3AM" (3/10, Nobody/Me)
 ```
 
-### Pre-trained Preferences
+**Step 3:** Open `skills/meme-lord/SKILL.md` and paste under the `## Rating History` section.
 
-The skill ships pre-loaded with learnings from real testing rounds:
+```bash
+# Open the file
+code skills/meme-lord/SKILL.md
 
-| Meme | Score | Key Learning |
-|------|-------|-------------|
-| "BEFORE DEPLOYING TO PROD / AFTER DEPLOYING TO PROD" | 8/10 | Universal dev experience + ironic contrast = winner |
-| "MAGA Hat Gas Pump" | 8/10 | Culturally specific + recognizable archetype + quiet defeat |
-| "Git Push Chaos" (video) | 6/10 | Specific character + dramatic consequence |
-| "Meal Prep vs Reality" (video) | 6/10 | Strong visual contrast + character archetypes |
-| "NASA Outlook in Space" | 5/10 | Universal tech frustration + absurd context |
-| News-based memes | 1/10 | Too niche, require too much context |
+# Or with any editor
+nano skills/meme-lord/SKILL.md
+```
+
+Scroll to the bottom. Paste your new ratings after the existing entries. Commit the change.
+
+**Step 4:** Next time the pipeline runs, Claude reads your full rating history and generates memes that match your taste.
+
+> The "Learnings" section is the key — it tells Claude explicitly which captions and formats scored well vs. poorly, so it can pattern-match on what you find funny and avoid repeating what flopped.
 
 ---
 
