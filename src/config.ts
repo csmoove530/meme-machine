@@ -24,6 +24,21 @@ export const BUDGET = {
   stableUpload: 0.30,
 };
 
+// ── Content policy ───────────────────────────────────────────────────────────
+// All generated content MUST be safe for work. This is non-negotiable.
+// Scene prompts are checked against this policy before generation.
+export const SFW_POLICY = {
+  enabled: true,
+  rules: [
+    'No nudity, sexual content, or suggestive imagery',
+    'No violence, gore, or graphic imagery (cartoon slapstick OK)',
+    'No hate speech, slurs, or discriminatory content',
+    'No drug/alcohol abuse depictions',
+    'No profanity in captions (PG-13 max)',
+    'All scenes must be workplace-appropriate',
+  ],
+};
+
 // ── Pipeline config ───────────────────────────────────────────────────────────
 export const TOPIC_COUNT = 3;
 export const MEMES_PER_TOPIC = 3;
